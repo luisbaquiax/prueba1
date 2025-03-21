@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+
+    environment {
+        GIT_CREDENTIALS_ID = '346d5170-e3df-4d99-b481-3f307456d7df'
+        REPO_URL = 'https://github.com/luisbaquiax/prueba1.git'
+    }
+
+    stages {
+        stage('Clonar repositorio') {
+            steps {
+                script {
+                    checkout([$class: 'GitSCM',
+                        branches: [[name: 'main']],
+                        userRemoteConfigs: [[
+                            url: REPO_URL,
+                            credentialsId: GIT_CREDENTIALS_ID
+                        ]]
+                    ])
+                }
+            }
+        }
+
+        stage('Instalar dependencias') {
+            steps {
+                script {
+                    bat '''
+                    echo "Usando Node.js versión: $(node -v)"
+                    npm install
+                    '''
+                }
+            }
+        }
+
+        stage('Ejecutar en desarrollo') {
+            steps {
+                script {
+                    bat '''
+                    echo "Iniciando el servidor en modo desarrollo..."
+                    npm run dev
+                    '''
+                }
+            }
+        }
+
+        stage('Iniciar aplicación') {
+            steps {
+                script {
+                    bat '''
+                    echo "Iniciando la aplicación en modo producción..."
+                    npm start
+                    '''
+                }
+            }
+        }
+    }
+}
